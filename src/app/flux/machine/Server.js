@@ -47,6 +47,7 @@ export class Server extends events.EventEmitter {
             nozzleTargetTemperature: 0,
             heatedBedTemperature: 0,
             heatedBedTargetTemperature: 0,
+            isEnclosureDoorOpen: true,
             workPosition: {
                 x: 0,
                 y: 0,
@@ -206,6 +207,7 @@ export class Server extends events.EventEmitter {
                 isNotNull(data.nozzleTargetTemperature) && (this.state.nozzleTargetTemperature = data.nozzleTargetTemperature);
                 isNotNull(data.heatedBedTemperature) && (this.state.heatedBedTemperature = data.heatedBedTemperature);
                 isNotNull(data.heatedBedTargetTemperature) && (this.state.heatedBedTargetTemperature = data.heatedBedTargetTemperature);
+                isNotNull(data.isEnclosureDoorOpen) && (this.state.isEnclosureDoorOpen = data.isEnclosureDoorOpen);
 
                 this._updateGcodePrintingInfo(data);
 
@@ -447,6 +449,7 @@ export class Server extends events.EventEmitter {
             laserFocalLength: this.state.laserFocalLength,
             laserPower: this.state.laserPower,
             workSpeed: this.state.workSpeed,
+            isEnclosureDoorOpen: this.state.isEnclosureDoorOpen,
             nozzleTemperature: this.state.nozzleTemperature,
             nozzleTargetTemperature: this.state.nozzleTargetTemperature,
             heatedBedTemperature: this.state.heatedBedTemperature,
@@ -537,12 +540,73 @@ export class Server extends events.EventEmitter {
             });
     };
 
+    getEnclosureStatus = (callback) => {
+        if (!this.token) {
+            callback && callback({
+                msg: 'this token is null'
+            });
+            return;
+        }
+        const api = `${this.host}/api/v1/enclosure_status?token=${this.token}`;
+        request
+            .get(api)
+            .end((err, res) => {
+                const { msg } = this._getResult(err, res);
+                if (callback) {
+                    callback(msg, JSON.parse(res.text));
+                }
+            });
+    };
+
+    setEnclosureLight = (value, callback) => {
+        const api = `${this.host}/api/v1/enclosure_led`;
+        request
+            .post(api)
+            .send(`token=${this.token}`)
+            .send(`led_power=${value}`)
+            .end((err, res) => {
+                const { msg, data } = this._getResult(err, res);
+                callback && callback(msg, data);
+            });
+    };
+
+    setEnclosureFan = (value, callback) => {
+        const api = `${this.host}/api/v1/enclosure_fan`;
+        request
+            .post(api)
+            .send(`token=${this.token}`)
+            .send(`fan_power=${value}`)
+            .end((err, res) => {
+                const { msg, data } = this._getResult(err, res);
+                callback && callback(msg, data);
+            });
+    };
+
+    setDoorDetection = (enabled, callback) => {
+        const api = `${this.host}/api/v1/enclosure_door_detection`;
+        request
+            .post(api)
+            .send(`token=${this.token}`)
+            .send(`enabled=${enabled}`)
+            .end((err, res) => {
+                const { msg, data } = this._getResult(err, res);
+                callback && callback(msg, data);
+            });
+    };
+
     _getResult = (err, res) => {
         if (err) {
             if (res && res.text === 'code = 202') {
                 return {
                     msg: err.message,
                     code: 202,
+                    text: res && res.text,
+                    data: res && res.body
+                };
+            } else if (res && res.text === 'code = 203') {
+                return {
+                    msg: err.message,
+                    code: 203,
                     text: res && res.text,
                     data: res && res.body
                 };

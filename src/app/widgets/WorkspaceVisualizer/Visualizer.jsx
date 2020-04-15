@@ -294,6 +294,12 @@ class Visualizer extends Component {
                                     text: i18n._('Filament has run out. Please load the new filament to continue printing.'),
                                     img: IMAGE_WIFI_ERROR
                                 });
+                            } else if (err.status === 203) {
+                                modalSmallHOC({
+                                    title: i18n._('Enclosure door Open'),
+                                    text: i18n._('Unable to start the job until you close the door'),
+                                    img: IMAGE_WIFI_ERROR
+                                });
                             } else {
                                 modalSmallHOC({
                                     title: i18n._(`Error ${err.status}`),
@@ -311,6 +317,12 @@ class Visualizer extends Component {
                                 modalSmallHOC({
                                     title: i18n._('Filament Runout Recovery'),
                                     text: i18n._('Filament has run out. Please load the new filament to continue printing.'),
+                                    img: IMAGE_WIFI_ERROR
+                                });
+                            } else if (err.status === 203) {
+                                modalSmallHOC({
+                                    title: i18n._('Enclosure door Open'),
+                                    text: i18n._('Unable to start the job until you close the door'),
                                     img: IMAGE_WIFI_ERROR
                                 });
                             } else {

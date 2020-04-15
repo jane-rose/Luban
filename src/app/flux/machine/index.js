@@ -67,6 +67,7 @@ const INITIAL_STATE = {
     isHomed: null,
     enclosure: false,
     enclosureDoor: false,
+    isEnclosureDoorOpen: true,
     laserFocalLength: null,
     laserPower: null,
     headStatus: null,
@@ -184,14 +185,19 @@ export const actions = {
                     isHomed: isHomed
                 }));
             },
-            // 'Marlin:settings': (settings) => {
+            // 'Marlin:settings': (options) => {
+            //     const { enclosure = false, enclosureDoor = false } = options.settings;
+            //
+            //     dispatch(actions.updateState({
+            //         enclosure: enclosure,
+            //         enclosureDoor: enclosureDoor
+            //     }));
+            // },
             'Marlin:settings': (options) => {
-                const { enclosure = false, enclosureDoor = false } = options.settings;
+                const { isEnclosureDoorOpen = true } = options.settings;
 
-                // enclosure is changed
                 dispatch(actions.updateState({
-                    enclosure: enclosure,
-                    enclosureDoor: enclosureDoor
+                    isEnclosureDoorOpen
                 }));
             },
             'http:discover': (objects) => {
@@ -660,6 +666,7 @@ export const actions = {
                     }
                     server.startGcode((err2) => {
                         if (err2) {
+                            console.log('startGcode', err2);
                             callback && callback(err2);
                             return;
                         }
