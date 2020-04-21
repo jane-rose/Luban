@@ -2,14 +2,14 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { actions as machineActions } from '../../flux/machine';
-// import { WORKFLOW_STATUS_RUNNING } from '../../constants';
-// import classNames from 'classnames';
 import i18n from '../../lib/i18n';
+import log from '../../lib/log';
 
 class Enclosure extends PureComponent {
     static propTypes = {
         executeGcode: PropTypes.func.isRequired,
-        headType: PropTypes.string,
+        enclosureLight: PropTypes.number.isRequired,
+        enclosureFan: PropTypes.number.isRequired,
         isConnected: PropTypes.bool.isRequired,
         connectionType: PropTypes.string.isRequired,
         setTitle: PropTypes.func.isRequired,
@@ -17,81 +17,82 @@ class Enclosure extends PureComponent {
     }
 
     state = {
-        isEnclosureReady: false,
-        enclosureLed: 0,
-        enclosureFan: 0,
-        isEnclosureDoorEnabled: true
+        isReady: false,
+        led: 0,
+        fan: 0,
+        isLedReady: true,
+        isFanReady: true,
+        isDoorEnabled: true
     }
 
     actions = {
-        onClickToolHead: () => {
-            const { server, isConnected, headType, connectionType } = this.props;
-            console.log(server, isConnected, headType, connectionType,);
-        },
         onHandleLed: async () => {
-            let enclosureLed;
-            if (this.state.enclosureLed === 0) {
-                enclosureLed = 100;
+            let led;
+            if (this.state.led === 0) {
+                led = 100;
             } else {
-                enclosureLed = 0;
+                led = 0;
             }
             if (this.props.connectionType === 'wifi') {
-                this.props.server.setEnclosureLight(enclosureLed, (errMsg, res) => {
+                this.props.server.setEnclosureLight(led, (errMsg, res) => {
                     if (errMsg) {
+                        log.error(errMsg);
                         return;
                     }
-                    if (res.result) {
+                    if (res) {
                         this.setState({
                             ...this.state,
-                            enclosureLed: res.led_power
+                            led: res.led
                         });
                     }
                 });
             } else {
-                await this.props.executeGcode(`M1010 S3 P${enclosureLed};`);
+                await this.props.executeGcode(`M1010 S3 P${led};`);
                 this.setState({
                     ...this.state,
-                    enclosureLed
+                    isLedReady: false
                 });
             }
         },
         onHandleCoolingFans: async () => {
-            let enclosureFan;
-            if (this.state.enclosureFan === 0) {
-                enclosureFan = 100;
+            let fan;
+            if (this.state.fan === 0) {
+                fan = 100;
             } else {
-                enclosureFan = 0;
+                fan = 0;
             }
             if (this.props.connectionType === 'wifi') {
-                this.props.server.setEnclosureFan(enclosureFan, (errMsg, res) => {
+                this.props.server.setEnclosureFan(fan, (errMsg, res) => {
                     if (errMsg) {
+                        log.error(errMsg);
                         return;
                     }
-                    if (res.result) {
+                    if (res) {
                         this.setState({
                             ...this.state,
-                            enclosureFan: res.fan_power
+                            fan: res.fan
                         });
                     }
                 });
             } else {
-                await this.props.executeGcode(`M1010 S4 P${enclosureFan};`);
+                await this.props.executeGcode(`M1010 S4 P${fan};`);
                 this.setState({
                     ...this.state,
-                    enclosureFan
+                    isFanReady: false
                 });
             }
         },
         onHandleDoorEnabled: () => {
-            const isEnclosureDoorEnabled = !this.state.isEnclosureDoorEnabled;
-            this.props.server.setDoorDetection(isEnclosureDoorEnabled, (errMsg, res) => {
+            const isDoorEnabled = !this.state.isDoorEnabled;
+            this.props.server.setDoorDetection(isDoorEnabled, (errMsg, res) => {
                 if (errMsg) {
+                    log.error(errMsg);
                     return;
                 }
-                if (res.result) {
+                if (res) {
                     this.setState({
                         ...this.state,
-                        isEnclosureDoorEnabled: res.enabled
+                        isDoorEnabled: res.isDoorEnabled
                     });
                 }
             });
@@ -105,31 +106,39 @@ class Enclosure extends PureComponent {
     }
 
     componentWillReceiveProps(nextProps) {
+        if (nextProps.enclosureLight !== this.props.enclosureLight && this.props.connectionType === 'serial') {
+            this.setState({
+                led: nextProps.enclosureLight,
+                isLedReady: true
+            });
+        }
+        if (nextProps.enclosureFan !== this.props.enclosureFan
+         && this.props.connectionType === 'serial') {
+            this.setState({
+                fan: nextProps.enclosureFan,
+                isFanReady: true
+            });
+        }
         if (nextProps.server.getEnclosureStatus && this.props.connectionType === 'wifi') {
             nextProps.server.getEnclosureStatus((errMsg, res) => {
                 if (errMsg) {
-                    console.log(errMsg);
+                    log.error(errMsg);
                 } else {
-                    const { isEnclosureReady, isEnclosureDoorEnabled, enclosureLed, enclosureFan } = res;
-                    console.log('getEnclosureStatus');
+                    const { isReady, isDoorEnabled, led, fan } = res;
                     this.setState({
-                        isEnclosureReady,
-                        isEnclosureDoorEnabled,
-                        enclosureLed,
-                        enclosureFan
+                        isReady,
+                        isDoorEnabled,
+                        led,
+                        fan
                     });
                 }
             });
-        } else if (nextProps.executeGcode && this.props.connectionType === 'serial') {
-            const result = nextProps.executeGcode('M1010');
-            console.log('result', nextProps.executeGcode, result);
         }
     }
 
     render() {
-        const { isEnclosureReady, isEnclosureDoorEnabled, enclosureLed, enclosureFan } = this.state;
+        const { isReady, isDoorEnabled, led, fan, isLedReady, isFanReady } = this.state;
         const { isConnected, connectionType } = this.props;
-        console.log('isConnected', isConnected, connectionType);
         return (
             <div>
                 <div className="sm-parameter-container">
@@ -137,67 +146,67 @@ class Enclosure extends PureComponent {
                         <span className="sm-parameter-row__label-lg">{i18n._('Enclosure Status')}</span>
                         <button
                             type="button"
-                            className={!isEnclosureReady ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
+                            className={!isReady ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
                             style={{
                                 float: 'right'
                             }}
                             disabled
                         >
-                            {!!isEnclosureReady && <i className="fa fa-toggle-off" />}
-                            {!isEnclosureReady && <i className="fa fa-toggle-on" />}
+                            {!!isReady && <i className="fa fa-toggle-off" />}
+                            {!isReady && <i className="fa fa-toggle-on" />}
                             <span className="space" />
-                            {!isEnclosureReady ? i18n._('On') : i18n._('Off')}
+                            {!isReady ? i18n._('On') : i18n._('Off')}
                         </button>
                     </div>
                     <div className="sm-parameter-row">
                         <span className="sm-parameter-row__label-lg">{i18n._('Enclosure Light')}</span>
                         <button
                             type="button"
-                            className={!enclosureLed ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
+                            className={!led ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
                             style={{
                                 float: 'right'
                             }}
                             onClick={this.actions.onHandleLed}
-                            disabled={!isConnected}
+                            disabled={(connectionType === 'serial' && !isLedReady) || !isConnected}
                         >
-                            {!!enclosureLed && <i className="fa fa-toggle-off" />}
-                            {!enclosureLed && <i className="fa fa-toggle-on" />}
+                            {!!led && <i className="fa fa-toggle-off" />}
+                            {!led && <i className="fa fa-toggle-on" />}
                             <span className="space" />
-                            {!enclosureLed ? i18n._('Open') : i18n._('Close')}
+                            {!led ? i18n._('On') : i18n._('Off')}
                         </button>
                     </div>
                     <div className="sm-parameter-row">
                         <span className="sm-parameter-row__label-lg">{i18n._('Enclosure Cooling Fan')}</span>
                         <button
                             type="button"
-                            className={!enclosureFan ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
+                            className={!fan ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
                             style={{
                                 float: 'right'
                             }}
                             onClick={this.actions.onHandleCoolingFans}
-                            disabled={!isConnected}
+                            disabled={(connectionType === 'serial' && !isFanReady) || !isConnected}
                         >
-                            {!!enclosureFan && <i className="fa fa-toggle-off" />}
-                            {!enclosureFan && <i className="fa fa-toggle-on" />}
+                            {!!fan && <i className="fa fa-toggle-off" />}
+                            {!fan && <i className="fa fa-toggle-on" />}
                             <span className="space" />
-                            {!enclosureFan ? i18n._('Open') : i18n._('Close')}
+                            {!fan ? i18n._('On') : i18n._('Off')}
                         </button>
                     </div>
                     <div className="sm-parameter-row">
                         <span className="sm-parameter-row__label-lg">{i18n._('Door Detection')}</span>
                         <button
                             type="button"
-                            className={!isEnclosureDoorEnabled ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
+                            className={!isDoorEnabled ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
                             style={{
                                 float: 'right'
                             }}
                             onClick={this.actions.onHandleDoorEnabled}
                             disabled={!isConnected || connectionType !== 'wifi'}
                         >
-                            {isEnclosureDoorEnabled && <i className="fa fa-toggle-off" />}
-                            {!isEnclosureDoorEnabled && <i className="fa fa-toggle-on" />}
+                            {isDoorEnabled && <i className="fa fa-toggle-off" />}
+                            {!isDoorEnabled && <i className="fa fa-toggle-on" />}
                             <span className="space" />
-                            {!isEnclosureDoorEnabled ? i18n._('Open') : i18n._('Close')}
+                            {!isDoorEnabled ? i18n._('On') : i18n._('Off')}
                         </button>
                     </div>
 
@@ -207,12 +216,12 @@ class Enclosure extends PureComponent {
     }
 }
 const mapStateToProps = (state) => {
-    // const { gcodeFiles } = state.workspace;
-    const { server, isConnected, headType, connectionType, isEnclosureDoorOpen } = state.machine;
+    const { server, isConnected, headType, connectionType, enclosureLight, enclosureFan } = state.machine;
 
     return {
-        isEnclosureDoorOpen,
         headType,
+        enclosureLight,
+        enclosureFan,
         isConnected,
         connectionType,
         server

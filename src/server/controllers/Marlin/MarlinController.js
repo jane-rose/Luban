@@ -426,6 +426,7 @@ class MarlinController {
         this.controller.on('enclosure', (res) => {
             if (includes([WRITE_SOURCE_CLIENT, WRITE_SOURCE_FEEDER], this.history.writeSource)) {
                 // this.emitAll('serialport:read', res.raw);
+                console.log('enclosure>>>>>', res.raw);
                 this.emitAll('serialport:read', { data: res.raw });
             }
         });
@@ -567,6 +568,7 @@ class MarlinController {
             }
 
             // Marlin settings
+
             if (this.settings !== this.controller.settings) {
                 this.settings = this.controller.settings;
                 // this.emitAll('Marlin:settings', this.settings);

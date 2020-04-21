@@ -47,7 +47,7 @@ export class Server extends events.EventEmitter {
             nozzleTargetTemperature: 0,
             heatedBedTemperature: 0,
             heatedBedTargetTemperature: 0,
-            isEnclosureDoorOpen: true,
+            isEnclosureDoorOpen: false,
             workPosition: {
                 x: 0,
                 y: 0,
@@ -547,7 +547,7 @@ export class Server extends events.EventEmitter {
             });
             return;
         }
-        const api = `${this.host}/api/v1/enclosure_status?token=${this.token}`;
+        const api = `${this.host}/api/v1/enclosure?token=${this.token}`;
         request
             .get(api)
             .end((err, res) => {
@@ -559,11 +559,11 @@ export class Server extends events.EventEmitter {
     };
 
     setEnclosureLight = (value, callback) => {
-        const api = `${this.host}/api/v1/enclosure_led`;
+        const api = `${this.host}/api/v1/enclosure`;
         request
             .post(api)
             .send(`token=${this.token}`)
-            .send(`led_power=${value}`)
+            .send(`led=${value}`)
             .end((err, res) => {
                 const { msg, data } = this._getResult(err, res);
                 callback && callback(msg, data);
@@ -571,11 +571,11 @@ export class Server extends events.EventEmitter {
     };
 
     setEnclosureFan = (value, callback) => {
-        const api = `${this.host}/api/v1/enclosure_fan`;
+        const api = `${this.host}/api/v1/enclosure`;
         request
             .post(api)
             .send(`token=${this.token}`)
-            .send(`fan_power=${value}`)
+            .send(`fan=${value}`)
             .end((err, res) => {
                 const { msg, data } = this._getResult(err, res);
                 callback && callback(msg, data);
@@ -583,11 +583,11 @@ export class Server extends events.EventEmitter {
     };
 
     setDoorDetection = (enabled, callback) => {
-        const api = `${this.host}/api/v1/enclosure_door_detection`;
+        const api = `${this.host}/api/v1/enclosure`;
         request
             .post(api)
             .send(`token=${this.token}`)
-            .send(`enabled=${enabled}`)
+            .send(`isDoorEnabled=${enabled}`)
             .end((err, res) => {
                 const { msg, data } = this._getResult(err, res);
                 callback && callback(msg, data);

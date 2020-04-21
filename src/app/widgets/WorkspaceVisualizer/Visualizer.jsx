@@ -7,7 +7,7 @@ import TWEEN from '@tweenjs/tween.js';
 import pubsub from 'pubsub-js';
 import colornames from 'colornames';
 
-import { Button } from '@trendmicro/react-buttons';
+// import { Button } from '@trendmicro/react-buttons';
 import Canvas from '../../components/SMCanvas';
 import styles from './index.styl';
 import { controller } from '../../lib/controller';
@@ -32,7 +32,8 @@ import Rendering from './Rendering';
 import ToolHead from './ToolHead';
 import WorkflowControl from './WorkflowControl';
 import SecondaryToolbar from '../CanvasToolbar/SecondaryToolbar';
-import Modal from '../../components/Modal';
+import ModalSmall from '../../components/Modal/ModalSmall';
+
 import i18n from '../../lib/i18n';
 import modalSmallHOC from '../../components/Modal/modal-small';
 import ProgressBar from '../../components/ProgressBar';
@@ -42,8 +43,7 @@ class Visualizer extends Component {
     static propTypes = {
         // redux
         size: PropTypes.object.isRequired,
-        enclosure: PropTypes.bool.isRequired,
-        enclosureDoor: PropTypes.bool.isRequired,
+        isEnclosureDoorOpen: PropTypes.bool.isRequired,
         uploadState: PropTypes.string.isRequired,
         headType: PropTypes.string,
         gcodeFile: PropTypes.object,
@@ -120,7 +120,7 @@ class Visualizer extends Component {
             sent: 0,
             received: 0
         },
-        showEnclosureDoorWarn: false
+        showEnclosureDoorWarn: this.props.isEnclosureDoorOpen
     };
 
     controllerEvents = {
@@ -237,11 +237,11 @@ class Visualizer extends Component {
             return (this.props.headType === MACHINE_HEAD_TYPE.LASER.value);
         },
         handleRun: () => {
-            const { enclosure, enclosureDoor } = this.props;
-            if (!this.actions.is3DP() && enclosure && !enclosureDoor) {
-                this.actions.openModal();
-                return;
-            }
+            // const { enclosure, enclosureDoor } = this.props;
+            // if (!this.actions.is3DP() && enclosure && !enclosureDoor) {
+            //     this.actions.openModal();
+            //     return;
+            // }
             const { connectionType } = this.props;
             if (connectionType === CONNECTION_TYPE_SERIAL) {
                 const { workflowState } = this.state;
@@ -297,7 +297,7 @@ class Visualizer extends Component {
                             } else if (err.status === 203) {
                                 modalSmallHOC({
                                     title: i18n._('Enclosure door Open'),
-                                    text: i18n._('Unable to start the job until you close the door'),
+                                    text: i18n._('Unable to resume the job until you close the door. Please wait 1 second after you close the door to proceed.'),
                                     img: IMAGE_WIFI_ERROR
                                 });
                             } else {
@@ -322,7 +322,7 @@ class Visualizer extends Component {
                             } else if (err.status === 203) {
                                 modalSmallHOC({
                                     title: i18n._('Enclosure door Open'),
-                                    text: i18n._('Unable to start the job until you close the door'),
+                                    text: i18n._('Unable to resume the job until you close the door. Please wait 1 second after you close the door to proceed.'),
                                     img: IMAGE_WIFI_ERROR
                                 });
                             } else {
@@ -517,6 +517,11 @@ class Visualizer extends Component {
         if (nextProps.renderState === 'rendered' && this.props.renderState !== 'rendered') {
             this.autoFocus();
         }
+        if (nextProps.isEnclosureDoorOpen !== this.props.isEnclosureDoorOpen) {
+            this.setState({
+                showEnclosureDoorWarn: nextProps.isEnclosureDoorOpen
+            });
+        }
     }
 
     componentWillUnmount() {
@@ -635,6 +640,7 @@ class Visualizer extends Component {
         this.canvas.current.renderScene();
     }
 
+
     render() {
         const state = this.state;
         const notice = this.notice();
@@ -681,29 +687,15 @@ class Visualizer extends Component {
                         autoFocus={this.actions.autoFocus}
                     />
                 </div>
-                {state.showEnclosureDoorWarn && (
-                    <Modal
-                        disableOverlay
-                        showCloseButton={false}
-                    >
-                        <Modal.Body>
-                            <div style={{ display: 'flex' }}>
-                                <i className="fa fa-exclamation-circle fa-4x text-danger" />
-                                <div style={{ marginLeft: 25 }}>
-                                    <h5>{i18n._('Enclosure door was opened')}</h5>
-                                    <p>{i18n._('The enclosure door needs to be closed before laser or CNC printing')}</p>
-                                </div>
-                            </div>
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button
-                                btnStyle="primary"
-                                onClick={this.actions.closeModal}
-                            >
-                                {i18n._('Ok')}
-                            </Button>
-                        </Modal.Footer>
-                    </Modal>
+
+                {(state.showEnclosureDoorWarn) && (
+                    <ModalSmall
+                        title={i18n._('Enclosure door Open')}
+                        onClose={this.actions.closeModal}
+                        text={i18n._('Unable to resume the job until you close the door. Please wait 1 second after you close the door to proceed.')}
+                        img={IMAGE_WIFI_ERROR}
+                    />
+
                 )}
             </div>
         );
@@ -717,6 +709,7 @@ const mapStateToProps = (state) => {
         size: machine.size,
         enclosure: machine.enclosure,
         enclosureDoor: machine.enclosureDoor,
+        isEnclosureDoorOpen: machine.isEnclosureDoorOpen,
         headType: machine.headType,
         workflowStatus: machine.workflowStatus,
         isConnected: machine.isConnected,

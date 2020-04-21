@@ -67,7 +67,9 @@ const INITIAL_STATE = {
     isHomed: null,
     enclosure: false,
     enclosureDoor: false,
-    isEnclosureDoorOpen: true,
+    isEnclosureDoorOpen: false,
+    enclosureLight: 0,
+    enclosureFan: 0,
     laserFocalLength: null,
     laserPower: null,
     headStatus: null,
@@ -194,10 +196,12 @@ export const actions = {
             //     }));
             // },
             'Marlin:settings': (options) => {
-                const { isEnclosureDoorOpen = true } = options.settings;
+                const { enclosureFan = 0, enclosureLight = 0 } = options.settings;
 
                 dispatch(actions.updateState({
-                    isEnclosureDoorOpen
+
+                    enclosureFan,
+                    enclosureLight
                 }));
             },
             'http:discover': (objects) => {
@@ -530,6 +534,7 @@ export const actions = {
                     nozzleTemperature,
                     nozzleTargetTemperature,
                     heatedBedTemperature,
+                    isEnclosureDoorOpen,
                     heatedBedTargetTemperature } = result.data;
 
                 dispatch(actions.updateState({
@@ -540,6 +545,7 @@ export const actions = {
                     nozzleTemperature: nozzleTemperature,
                     nozzleTargetTemperature: nozzleTargetTemperature,
                     heatedBedTemperature: heatedBedTemperature,
+                    isEnclosureDoorOpen: isEnclosureDoorOpen,
                     heatedBedTargetTemperature: heatedBedTargetTemperature
                 }));
                 if (workPosition.x !== x
