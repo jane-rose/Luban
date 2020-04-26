@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import TipTrigger from '../../components/TipTrigger';
 import { actions as machineActions } from '../../flux/machine';
 import i18n from '../../lib/i18n';
 import log from '../../lib/log';
@@ -9,7 +10,9 @@ class Enclosure extends PureComponent {
     static propTypes = {
         executeGcode: PropTypes.func.isRequired,
         enclosureLight: PropTypes.number.isRequired,
+        setDisplay: PropTypes.func.isRequired,
         enclosureFan: PropTypes.number.isRequired,
+        enclosure: PropTypes.bool.isRequired,
         isConnected: PropTypes.bool.isRequired,
         connectionType: PropTypes.string.isRequired,
         setTitle: PropTypes.func.isRequired,
@@ -20,6 +23,7 @@ class Enclosure extends PureComponent {
         isReady: false,
         led: 0,
         fan: 0,
+        enclosureReady: false,
         isLedReady: true,
         isFanReady: true,
         isDoorEnabled: true
@@ -105,6 +109,14 @@ class Enclosure extends PureComponent {
         this.props.setTitle(i18n._('Enclosure'));
     }
 
+    componentDidMount() {
+        if (this.props.isConnected) {
+            this.props.setDisplay(true);
+        } else {
+            this.props.setDisplay(false);
+        }
+    }
+
     componentWillReceiveProps(nextProps) {
         if (nextProps.enclosureLight !== this.props.enclosureLight && this.props.connectionType === 'serial') {
             this.setState({
@@ -119,10 +131,22 @@ class Enclosure extends PureComponent {
                 isFanReady: true
             });
         }
-        if (nextProps.server.getEnclosureStatus && this.props.connectionType === 'wifi') {
+        if (nextProps.isConnected && !this.props.isConnected) {
+            this.props.setDisplay(true);
+        }
+        if (!nextProps.isConnected) {
+            this.props.setDisplay(false);
+        }
+        if (nextProps.enclosure !== this.props.enclosure
+         && this.props.connectionType === 'serial') {
+            this.setState({
+                enclosureReady: nextProps.enclosure
+            });
+        }
+        if (nextProps.isConnected && nextProps.connectionType === 'wifi') {
             nextProps.server.getEnclosureStatus((errMsg, res) => {
                 if (errMsg) {
-                    log.error(errMsg);
+                    log.warn(errMsg);
                 } else {
                     const { isReady, isDoorEnabled, led, fan } = res;
                     this.setState({
@@ -137,89 +161,87 @@ class Enclosure extends PureComponent {
     }
 
     render() {
-        const { isReady, isDoorEnabled, led, fan, isLedReady, isFanReady } = this.state;
+        const { isReady, isDoorEnabled, led, fan, isLedReady, isFanReady, enclosureReady } = this.state;
         const { isConnected, connectionType } = this.props;
         return (
             <div>
-                <div className="sm-parameter-container">
-                    <div className="sm-parameter-row">
-                        <span className="sm-parameter-row__label-lg">{i18n._('Enclosure Status')}</span>
-                        <button
-                            type="button"
-                            className={!isReady ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
-                            style={{
-                                float: 'right'
-                            }}
-                            disabled
-                        >
-                            {!!isReady && <i className="fa fa-toggle-off" />}
-                            {!isReady && <i className="fa fa-toggle-on" />}
-                            <span className="space" />
-                            {!isReady ? i18n._('On') : i18n._('Off')}
-                        </button>
-                    </div>
-                    <div className="sm-parameter-row">
-                        <span className="sm-parameter-row__label-lg">{i18n._('Enclosure Light')}</span>
-                        <button
-                            type="button"
-                            className={!led ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
-                            style={{
-                                float: 'right'
-                            }}
-                            onClick={this.actions.onHandleLed}
-                            disabled={(connectionType === 'serial' && !isLedReady) || !isConnected}
-                        >
-                            {!!led && <i className="fa fa-toggle-off" />}
-                            {!led && <i className="fa fa-toggle-on" />}
-                            <span className="space" />
-                            {!led ? i18n._('On') : i18n._('Off')}
-                        </button>
-                    </div>
-                    <div className="sm-parameter-row">
-                        <span className="sm-parameter-row__label-lg">{i18n._('Enclosure Cooling Fan')}</span>
-                        <button
-                            type="button"
-                            className={!fan ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
-                            style={{
-                                float: 'right'
-                            }}
-                            onClick={this.actions.onHandleCoolingFans}
-                            disabled={(connectionType === 'serial' && !isFanReady) || !isConnected}
-                        >
-                            {!!fan && <i className="fa fa-toggle-off" />}
-                            {!fan && <i className="fa fa-toggle-on" />}
-                            <span className="space" />
-                            {!fan ? i18n._('On') : i18n._('Off')}
-                        </button>
-                    </div>
-                    <div className="sm-parameter-row">
-                        <span className="sm-parameter-row__label-lg">{i18n._('Door Detection')}</span>
-                        <button
-                            type="button"
-                            className={!isDoorEnabled ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
-                            style={{
-                                float: 'right'
-                            }}
-                            onClick={this.actions.onHandleDoorEnabled}
-                            disabled={!isConnected || connectionType !== 'wifi'}
-                        >
-                            {isDoorEnabled && <i className="fa fa-toggle-off" />}
-                            {!isDoorEnabled && <i className="fa fa-toggle-on" />}
-                            <span className="space" />
-                            {!isDoorEnabled ? i18n._('On') : i18n._('Off')}
-                        </button>
+                {(isConnected && ((connectionType === 'serial' && enclosureReady) || (connectionType === 'wifi' && isReady))) && (
+
+                    <div className="sm-parameter-container">
+                        <div className="sm-parameter-row">
+                            <span className="sm-parameter-row__label-lg">{i18n._('LED Strip')}</span>
+                            <button
+                                type="button"
+                                className={!led ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
+                                style={{
+                                    float: 'right'
+                                }}
+                                onClick={this.actions.onHandleLed}
+                                disabled={(connectionType === 'serial' && !isLedReady) || !isConnected}
+                            >
+                                {!!led && <i className="fa fa-toggle-off" />}
+                                {!led && <i className="fa fa-toggle-on" />}
+                                <span className="space" />
+                                {!led ? i18n._('On') : i18n._('Off')}
+                            </button>
+                        </div>
+                        <div className="sm-parameter-row">
+                            <span className="sm-parameter-row__label-lg">{i18n._('Cooling Fan')}</span>
+                            <button
+                                type="button"
+                                className={!fan ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
+                                style={{
+                                    float: 'right'
+                                }}
+                                onClick={this.actions.onHandleCoolingFans}
+                                disabled={(connectionType === 'serial' && !isFanReady) || !isConnected}
+                            >
+                                {!!fan && <i className="fa fa-toggle-off" />}
+                                {!fan && <i className="fa fa-toggle-on" />}
+                                <span className="space" />
+                                {!fan ? i18n._('On') : i18n._('Off')}
+                            </button>
+                        </div>
+                        { (isConnected && connectionType === 'wifi') && (
+                            <TipTrigger
+                                title={i18n._('Door Detection')}
+                                content={(
+                                    <div>
+                                        <p>{i18n._('If you disable the Door Detection feature, your job will not pause when one of both of the enclosure panels is/are opened.')}</p>
+                                    </div>
+                                )}
+                            >
+                                <div className="sm-parameter-row">
+                                    <span className="sm-parameter-row__label-lg">{i18n._('Door Detection')}</span>
+                                    <button
+                                        type="button"
+                                        className={!isDoorEnabled ? 'sm-btn-small sm-btn-primary' : 'sm-btn-small sm-btn-danger'}
+                                        style={{
+                                            float: 'right'
+                                        }}
+                                        onClick={this.actions.onHandleDoorEnabled}
+                                    >
+                                        {isDoorEnabled && <i className="fa fa-toggle-off" />}
+                                        {!isDoorEnabled && <i className="fa fa-toggle-on" />}
+                                        <span className="space" />
+                                        {!isDoorEnabled ? i18n._('On') : i18n._('Off')}
+                                    </button>
+                                </div>
+                            </TipTrigger>
+                        )}
                     </div>
 
-                </div>
+                )}
             </div>
         );
     }
 }
 const mapStateToProps = (state) => {
-    const { server, isConnected, headType, connectionType, enclosureLight, enclosureFan } = state.machine;
+    const { server, isConnected, headType, connectionType, enclosure, enclosureLight, enclosureFan } = state.machine;
 
     return {
         headType,
+        enclosure,
         enclosureLight,
         enclosureFan,
         isConnected,

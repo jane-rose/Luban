@@ -108,10 +108,6 @@ class SerialConnection extends EventEmitter {
             }
             this.writeFilter = writeFilter;
         }
-<<<<<<< HEAD
-=======
-        // TODO
->>>>>>> Refactor: Change api name
         const settings = Object.assign({}, { ...options }, defaultSettings);
         Object.defineProperties(this, {
             settings: {

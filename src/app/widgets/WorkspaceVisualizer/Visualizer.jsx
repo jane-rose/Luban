@@ -18,7 +18,7 @@ import {
     PROTOCOL_TEXT, WORKFLOW_STATUS_IDLE, WORKFLOW_STATUS_PAUSED, WORKFLOW_STATUS_RUNNING,
     WORKFLOW_STATE_IDLE,
     WORKFLOW_STATE_PAUSED,
-    WORKFLOW_STATE_RUNNING, WORKFLOW_STATUS_UNKNOWN, IMAGE_WIFI_ERROR
+    WORKFLOW_STATE_RUNNING, WORKFLOW_STATUS_UNKNOWN, IMAGE_WIFI_ERROR, IMAGE_ENCLOSURE_WARNING
 } from '../../constants';
 import { ensureRange } from '../../lib/numeric-utils';
 import TargetPoint from '../../components/three-extensions/TargetPoint';
@@ -43,7 +43,8 @@ class Visualizer extends Component {
     static propTypes = {
         // redux
         size: PropTypes.object.isRequired,
-        isEnclosureDoorOpen: PropTypes.bool.isRequired,
+        isEnclosureDoorOpen: PropTypes.bool,
+        doorSwitchCount: PropTypes.number,
         uploadState: PropTypes.string.isRequired,
         headType: PropTypes.string,
         gcodeFile: PropTypes.object,
@@ -120,7 +121,7 @@ class Visualizer extends Component {
             sent: 0,
             received: 0
         },
-        showEnclosureDoorWarn: this.props.isEnclosureDoorOpen
+        showEnclosureDoorWarn: false
     };
 
     controllerEvents = {
@@ -296,9 +297,9 @@ class Visualizer extends Component {
                                 });
                             } else if (err.status === 203) {
                                 modalSmallHOC({
-                                    title: i18n._('Enclosure door Open'),
-                                    text: i18n._('Unable to resume the job until you close the door. Please wait 1 second after you close the door to proceed.'),
-                                    img: IMAGE_WIFI_ERROR
+                                    title: i18n._('Enclosure Door Open'),
+                                    text: i18n._('One or both of the enclosure panels is/are opened. Please close the panel(s) to continue printing. Please wait one second after you close the door to proceed.'),
+                                    img: IMAGE_ENCLOSURE_WARNING
                                 });
                             } else {
                                 modalSmallHOC({
@@ -321,9 +322,9 @@ class Visualizer extends Component {
                                 });
                             } else if (err.status === 203) {
                                 modalSmallHOC({
-                                    title: i18n._('Enclosure door Open'),
-                                    text: i18n._('Unable to resume the job until you close the door. Please wait 1 second after you close the door to proceed.'),
-                                    img: IMAGE_WIFI_ERROR
+                                    title: i18n._('Enclosure Door Open'),
+                                    text: i18n._('One or both of the enclosure panels is/are opened. Please close the panel(s) to continue printing. Please wait one second after you close the door to proceed.'),
+                                    img: IMAGE_ENCLOSURE_WARNING
                                 });
                             } else {
                                 modalSmallHOC({
@@ -446,11 +447,6 @@ class Visualizer extends Component {
             this.setState({ toolheadVisible: visible });
             this.renderScene();
         },
-        openModal: () => {
-            this.setState({
-                showEnclosureDoorWarn: true
-            });
-        },
         closeModal: () => {
             this.setState({
                 showEnclosureDoorWarn: false
@@ -520,6 +516,10 @@ class Visualizer extends Component {
         if (nextProps.isEnclosureDoorOpen !== this.props.isEnclosureDoorOpen) {
             this.setState({
                 showEnclosureDoorWarn: nextProps.isEnclosureDoorOpen
+            });
+        } else if (nextProps.doorSwitchCount !== this.props.doorSwitchCount) {
+            this.setState({
+                showEnclosureDoorWarn: true
             });
         }
     }
@@ -645,7 +645,6 @@ class Visualizer extends Component {
         const state = this.state;
         const notice = this.notice();
         const { gcodeFile } = this.props;
-
         return (
             <div className="position-absolute" style={{ top: 0, bottom: 0, left: 0, right: 0 }}>
                 <div className={styles['visualizer-notice']}>
@@ -690,10 +689,10 @@ class Visualizer extends Component {
 
                 {(state.showEnclosureDoorWarn) && (
                     <ModalSmall
-                        title={i18n._('Enclosure door Open')}
+                        title={i18n._('Enclosure Door Open')}
                         onClose={this.actions.closeModal}
-                        text={i18n._('Unable to resume the job until you close the door. Please wait 1 second after you close the door to proceed.')}
-                        img={IMAGE_WIFI_ERROR}
+                        text={i18n._('One or both of the enclosure panels is/are opened. Please close the panel(s) to continue printing. Please wait one second after you close the door to proceed.')}
+                        img={IMAGE_ENCLOSURE_WARNING}
                     />
 
                 )}
@@ -709,6 +708,7 @@ const mapStateToProps = (state) => {
         size: machine.size,
         enclosure: machine.enclosure,
         enclosureDoor: machine.enclosureDoor,
+        doorSwitchCount: machine.doorSwitchCount,
         isEnclosureDoorOpen: machine.isEnclosureDoorOpen,
         headType: machine.headType,
         workflowStatus: machine.workflowStatus,

@@ -48,6 +48,7 @@ export class Server extends events.EventEmitter {
             heatedBedTemperature: 0,
             heatedBedTargetTemperature: 0,
             isEnclosureDoorOpen: false,
+            doorSwitchCount: 0,
             workPosition: {
                 x: 0,
                 y: 0,
@@ -208,6 +209,7 @@ export class Server extends events.EventEmitter {
                 isNotNull(data.heatedBedTemperature) && (this.state.heatedBedTemperature = data.heatedBedTemperature);
                 isNotNull(data.heatedBedTargetTemperature) && (this.state.heatedBedTargetTemperature = data.heatedBedTargetTemperature);
                 isNotNull(data.isEnclosureDoorOpen) && (this.state.isEnclosureDoorOpen = data.isEnclosureDoorOpen);
+                isNotNull(data.doorSwitchCount) && (this.state.doorSwitchCount = data.doorSwitchCount);
 
                 this._updateGcodePrintingInfo(data);
 
@@ -450,6 +452,7 @@ export class Server extends events.EventEmitter {
             laserPower: this.state.laserPower,
             workSpeed: this.state.workSpeed,
             isEnclosureDoorOpen: this.state.isEnclosureDoorOpen,
+            doorSwitchCount: this.state.doorSwitchCount,
             nozzleTemperature: this.state.nozzleTemperature,
             nozzleTargetTemperature: this.state.nozzleTargetTemperature,
             heatedBedTemperature: this.state.heatedBedTemperature,

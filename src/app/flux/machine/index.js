@@ -68,6 +68,7 @@ const INITIAL_STATE = {
     enclosure: false,
     enclosureDoor: false,
     isEnclosureDoorOpen: false,
+    doorSwitchCount: 0,
     enclosureLight: 0,
     enclosureFan: 0,
     laserFocalLength: null,
@@ -187,19 +188,11 @@ export const actions = {
                     isHomed: isHomed
                 }));
             },
-            // 'Marlin:settings': (options) => {
-            //     const { enclosure = false, enclosureDoor = false } = options.settings;
-            //
-            //     dispatch(actions.updateState({
-            //         enclosure: enclosure,
-            //         enclosureDoor: enclosureDoor
-            //     }));
-            // },
             'Marlin:settings': (options) => {
-                const { enclosureFan = 0, enclosureLight = 0 } = options.settings;
+                const { enclosure, enclosureFan = 0, enclosureLight = 0 } = options.settings;
 
                 dispatch(actions.updateState({
-
+                    enclosure,
                     enclosureFan,
                     enclosureLight
                 }));
@@ -534,6 +527,7 @@ export const actions = {
                     nozzleTemperature,
                     nozzleTargetTemperature,
                     heatedBedTemperature,
+                    doorSwitchCount,
                     isEnclosureDoorOpen,
                     heatedBedTargetTemperature } = result.data;
 
@@ -546,6 +540,7 @@ export const actions = {
                     nozzleTargetTemperature: nozzleTargetTemperature,
                     heatedBedTemperature: heatedBedTemperature,
                     isEnclosureDoorOpen: isEnclosureDoorOpen,
+                    doorSwitchCount: doorSwitchCount,
                     heatedBedTargetTemperature: heatedBedTargetTemperature
                 }));
                 if (workPosition.x !== x
@@ -672,7 +667,6 @@ export const actions = {
                     }
                     server.startGcode((err2) => {
                         if (err2) {
-                            console.log('startGcode', err2);
                             callback && callback(err2);
                             return;
                         }

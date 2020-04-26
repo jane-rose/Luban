@@ -178,7 +178,6 @@ class MarlinReplyParserToolHead {
 class MarlinReplyParserEnclosure {
     static parse(line) {
         const r = line.match(/^Enclosure: (On|Off)$/);
-
         if (!r) {
             return null;
         }
@@ -200,9 +199,9 @@ class MarlinReplyParserEnclosureDoor {
         }
 
         return {
-            type: MarlinReplyParserEnclosure,
+            type: MarlinReplyParserEnclosureDoor,
             payload: {
-                enclosure: r[1] === 'Open'
+                enclosureDoor: r[1] === 'Open'
             }
         };
     }
