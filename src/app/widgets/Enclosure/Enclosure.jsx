@@ -10,6 +10,7 @@ class Enclosure extends PureComponent {
     static propTypes = {
         executeGcode: PropTypes.func.isRequired,
         enclosureLight: PropTypes.number.isRequired,
+        headType: PropTypes.string,
         setDisplay: PropTypes.func.isRequired,
         enclosureFan: PropTypes.number.isRequired,
         enclosure: PropTypes.bool.isRequired,
@@ -162,7 +163,7 @@ class Enclosure extends PureComponent {
 
     render() {
         const { isReady, isDoorEnabled, led, fan, isLedReady, isFanReady, enclosureReady } = this.state;
-        const { isConnected, connectionType } = this.props;
+        const { isConnected, connectionType, headType } = this.props;
         return (
             <div>
                 {(isConnected && ((connectionType === 'serial' && enclosureReady) || (connectionType === 'wifi' && isReady))) && (
@@ -202,7 +203,7 @@ class Enclosure extends PureComponent {
                                 {!fan ? i18n._('On') : i18n._('Off')}
                             </button>
                         </div>
-                        { (isConnected && connectionType === 'wifi') && (
+                        { (isConnected && connectionType === 'wifi' && headType !== '3dp') && (
                             <TipTrigger
                                 title={i18n._('Door Detection')}
                                 content={(
