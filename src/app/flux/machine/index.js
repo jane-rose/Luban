@@ -117,6 +117,7 @@ const INITIAL_STATE = {
 
     // autoUpdate
     shouldCheckForUpdate: false,
+    isStartDownload: false,
     checkForUpdateOnce: false
 };
 
@@ -370,6 +371,9 @@ export const actions = {
         dispatch(actions.updateState({ shouldCheckForUpdate: shouldCheckForUpdate }));
         console.log('updateShouldCheckForUpdate', shouldCheckForUpdate);
         machineStore.set('shouldCheckForUpdate', shouldCheckForUpdate);
+    },
+    updateStartDownload: (isStartDownload) => (dispatch) => {
+        dispatch(actions.updateState({ isStartDownload: isStartDownload }));
     },
     updateMachineState: (state) => (dispatch) => {
         const { series, headType, canReselectMachine } = state;
