@@ -113,7 +113,11 @@ const INITIAL_STATE = {
         remainingTime: 0
     },
     shouldShowCncWarning: true,
-    connectionTimeout: 3000
+    connectionTimeout: 3000,
+
+    // autoUpdate
+    shouldCheckForUpdate: false,
+    checkForUpdateOnce: false
 };
 
 const ACTION_UPDATE_STATE = 'machine/ACTION_UPDATE_STATE';
@@ -134,6 +138,8 @@ export const actions = {
         const { series = INITIAL_STATE.series, size = INITIAL_STATE.size, laserSize = INITIAL_STATE.laserSize } = machineStore.get('machine') || {};
         const machinePort = machineStore.get('port') || '';
         const manualIp = machineStore.get('manualIp') || '';
+        const shouldCheckForUpdate = machineStore.get('shouldCheckForUpdate') || false;
+        console.log('machineStore', machineStore, shouldCheckForUpdate, typeof shouldCheckForUpdate);
         const serverAddress = machineStore.get('server.address') || '';
         const serverToken = machineStore.get('server.token') || '';
         const connectionType = machineStore.get('connection.type') || CONNECTION_TYPE_SERIAL;
@@ -168,6 +174,7 @@ export const actions = {
             serverAddress: serverAddress,
             connectionType: connectionType,
             connectionTimeout: connectionTimeout,
+            shouldCheckForUpdate: shouldCheckForUpdate,
             shouldShowCncWarning
         }));
 
@@ -353,6 +360,17 @@ export const actions = {
             });
     },
 
+    updateCheckForUpdateOnce: (checkForUpdateOnce) => (dispatch) => {
+        dispatch(actions.updateState({
+            checkForUpdateOnce: checkForUpdateOnce
+        }));
+        console.log('updateCheckForUpdateOnce', checkForUpdateOnce);
+    },
+    updateShouldCheckForUpdate: (shouldCheckForUpdate) => (dispatch) => {
+        dispatch(actions.updateState({ shouldCheckForUpdate: shouldCheckForUpdate }));
+        console.log('updateShouldCheckForUpdate', shouldCheckForUpdate);
+        machineStore.set('shouldCheckForUpdate', shouldCheckForUpdate);
+    },
     updateMachineState: (state) => (dispatch) => {
         const { series, headType, canReselectMachine } = state;
         headType && dispatch(actions.updateState({
