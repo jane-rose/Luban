@@ -3,7 +3,8 @@ import 'regenerator-runtime/runtime';
 import { app, BrowserWindow, screen, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import Store from 'electron-store';
-// import fs from 'fs';
+import fs from 'fs';
+import crypto from 'crypto';
 import { isNull } from 'lodash';
 import path from 'path';
 import { configureWindow } from './electron-app/window';
@@ -18,6 +19,7 @@ const config = new Store();
 let serverData = null;
 let mainWindow = null;
 let mainWindowOptions = null;
+let hashStr = '';
 
 function getBrowserWindowOptions() {
     const defaultOptions = {
@@ -82,26 +84,60 @@ function sendUpdateMessage(text) {
     mainWindow.webContents.send('message', text);
 }
 
+function hashFile(file, str, algorithm = 'sha512', encoding = 'base64', options) {
+    return new Promise((resolve, reject) => {
+        const hash = crypto.createHash(algorithm);
+        hash.update(str);
+        hash.on('error', reject).setEncoding(encoding);
+        fs.createReadStream(
+            file,
+            Object.assign({}, options, {
+                highWaterMark: 1024 * 1024
+                /* better to use more memory but hash faster */
+            })
+        )
+            .on('error', reject)
+            .on('end', () => {
+                hash.end();
+                console.log('hash done', hash.read());
+                resolve(hash.read());
+            })
+            .pipe(
+                hash,
+                {
+                    end: false
+                }
+            );
+    });
+}
+
 // handle update issue
 function updateHandle() {
     // before update , delete file last download
     // /Users/jiantao/Library/Application\ Support/Caches/snapmaker-luban-updater/pending
     // const updaterCacheDirName = 'snapmaker-luban-updater';
     // const updatePendingPath = path.join(autoUpdater.app.baseCachePath, updaterCacheDirName, 'pending');
-    // fs.emptyDir(updatePendingPath);
     const message = {
         error: 'update error',
         checking: 'updating...',
         updateAva: 'fetch new version and downloading...',
         updateNotAva: 'do not to update'
     };
-    // autoDownload
+    // // autoDownload
+    // https://github.com/Snapmaker/Luban/releases/download/v3.10.3/snapmaker-luban-3.10.3-win-x64.exe
+    // const url = `https://github.com/Snapmaker/Luban/releases/download/${app.getVersion()}/platformDef`;
+    // console.log('process.platform', url);
+    // autoUpdater.setFeedURL({ url });
+
     autoUpdater.autoDownload = false;
 
     ipcMain.on('isDownloadNow', () => {
         mainWindow.webContents.send('isStartDownload');
         autoUpdater.downloadUpdate().then((res) => {
-            console.log('downloadUpdate', res);
+            console.log('downloadUpdate path', res);
+            const installerPath = res[0];
+
+            hashFile(installerPath, hashStr);
         });
     });
 
@@ -112,7 +148,8 @@ function updateHandle() {
         sendUpdateMessage(message.checking);
     });
     autoUpdater.on('update-available', (downloadInfo) => {
-        console.log('update-available', downloadInfo);
+        hashStr = downloadInfo.sha512;
+        console.log('update-available', downloadInfo, hashStr);
         sendUpdateMessage(message.updateAva);
         mainWindow.webContents.send('updateAvailable', downloadInfo);
     });
