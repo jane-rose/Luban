@@ -1,0 +1,66 @@
+---
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
+
+---
+
+---
+name: "\U0001F41E Bug report"
+about: Report a bug 
+---
+<!--🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅
+
+Oh hi there! 😄
+
+To expedite issue processing please search open and closed issues before submitting a new one.
+Existing issues often contain information about workarounds, resolution, or progress updates.
+
+🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅-->
+
+
+# 🐞 bug report
+
+### Affected Package
+<!-- Can you pin-point one or more ? -->
+<!-- ✍️edit: --> The issue is caused by version 3.xx.x
+
+
+### Is this a regression?
+
+<!-- Did this behavior use to work in the previous version? -->
+<!-- ✍️--> Yes, the previous version in which this bug was not present was: ....
+
+### To Reproduce
+Steps to reproduce the behavior:
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
+<!-- ✍️--> A clear and concise description of the problem...
+
+Exception or Error
+<pre><code>
+<!-- If the issue is accompanied by an exception or an error, please share it below: -->
+<!-- ✍️-->
+</code></pre>
+
+Expected behavior
+A clear and concise description of what you expected to happen.
+
+
+## 🌍  Your Environment
+
+**Luban Version & platform:**
+<pre><code>
+<!-- run `ng version` and paste output below -->
+<!-- ✍️-->
+
+</code></pre>
+
+**Anything else relevant?**
+<!-- ✍️Is this a browser specific issue? If so, please specify the browser and version. -->
+
+<!-- ✍️Do any of these matter: operating system, IDE, package manager, HTTP server, ...? If so, please mention it below. -->
