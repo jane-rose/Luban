@@ -1,16 +1,12 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: ''
-labels: ''
+title: "[Bug]: xxxx in 3dp"
+labels: bug
 assignees: ''
 
 ---
 
----
-name: "\U0001F41E Bug report"
-about: Report a bug 
----
 <!--🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅
 
 Oh hi there! 😄
@@ -59,8 +55,3 @@ A clear and concise description of what you expected to happen.
 <!-- ✍️-->
 
 </code></pre>
-
-**Anything else relevant?**
-<!-- ✍️Is this a browser specific issue? If so, please specify the browser and version. -->
-
-<!-- ✍️Do any of these matter: operating system, IDE, package manager, HTTP server, ...? If so, please mention it below. -->
