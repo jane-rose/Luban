@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: "[Bug]: xxxx in 3dp"
+title: 'Bug: xxxx in 3d printing'
 labels: bug
 assignees: ''
 
@@ -15,7 +15,6 @@ To expedite issue processing please search open and closed issues before submitt
 Existing issues often contain information about workarounds, resolution, or progress updates.
 
 🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅🔅-->
-
 
 # 🐞 bug report
 
@@ -49,9 +48,10 @@ A clear and concise description of what you expected to happen.
 
 ## 🌍  Your Environment
 
-**Luban Version & platform:**
+**Platform:**
 <pre><code>
-<!-- run `ng version` and paste output below -->
 <!-- ✍️-->
+- Machine: [Original, A150, A250, A350]
+- OS: [Windows 10, MacOS Big Sur, Linux]
 
 </code></pre>

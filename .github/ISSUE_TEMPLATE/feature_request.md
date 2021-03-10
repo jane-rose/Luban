@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: "[Feature Request]: xxxx in 3dp"
+title: 'Feature Request: xxxx in laser/cnc'
 labels: ''
 assignees: ''
 
@@ -32,5 +32,7 @@ Existing issues often contain information about workarounds, resolution, or prog
 **Luban Version & platform:**
 <pre><code>
 <!-- ✍️-->
-
+- Verison: [v3.13.1]
+- Machine: [Original, A150, A250, A350]
+- OS: [Windows 10, MacOS Big Sur, Linux]
 </code></pre>
