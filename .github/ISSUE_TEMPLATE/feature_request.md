@@ -26,13 +26,3 @@ Existing issues often contain information about workarounds, resolution, or prog
 
 <!-- A clear and concise description of what you want to happen. -->
 <!-- ✍️-->
-
-## 🌍  Your Environment
-
-**Luban Version & platform:**
-<pre><code>
-<!-- ✍️-->
-- Verison: [v3.13.1]
-- Machine: [Original, A150, A250, A350]
-- OS: [Windows 10, MacOS Big Sur, Linux]
-</code></pre>
